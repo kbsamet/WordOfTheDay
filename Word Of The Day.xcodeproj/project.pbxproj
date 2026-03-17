@@ -6,14 +6,82 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		B1061CA02F1660C0004C6C83 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B1061C9F2F1660C0004C6C83 /* WidgetKit.framework */; };
+		B1061CA22F1660C0004C6C83 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B1061CA12F1660C0004C6C83 /* SwiftUI.framework */; };
+		B1061CB32F1660C1004C6C83 /* WordOfTheDayWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = B1061C9D2F1660C0004C6C83 /* WordOfTheDayWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		B1061CB12F1660C1004C6C83 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = B1061C732F16526C004C6C83 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = B1061C9C2F1660C0004C6C83;
+			remoteInfo = WordOfTheDayWidgetExtension;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		B1061CB82F1660C1004C6C83 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				B1061CB32F1660C1004C6C83 /* WordOfTheDayWidgetExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
 		B1061C7B2F16526C004C6C83 /* Word Of The Day.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Word Of The Day.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		B1061C9D2F1660C0004C6C83 /* WordOfTheDayWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = WordOfTheDayWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		B1061C9F2F1660C0004C6C83 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
+		B1061CA12F1660C0004C6C83 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
+		B1061CBC2F16638D004C6C83 /* WordOfTheDayWidgetExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = WordOfTheDayWidgetExtension.entitlements; sourceTree = "<group>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		B1061CB42F1660C1004C6C83 /* Exceptions for "WordOfTheDayWidget" folder in "WordOfTheDayWidgetExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = B1061C9C2F1660C0004C6C83 /* WordOfTheDayWidgetExtension */;
+		};
+		B10635EB2F28DC6A004C6C83 /* Exceptions for "Word Of The Day" folder in "WordOfTheDayWidgetExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Colors.xcassets,
+				FrequencyData/FrequencyParser.swift,
+				FrequencyData/WordPoolLoader.swift,
+				Model/WordModels.swift,
+				Service/WikiClient.swift,
+				Utils/WordCache.swift,
+				Utils/WordOfTheDayEngine.swift,
+			);
+			target = B1061C9C2F1660C0004C6C83 /* WordOfTheDayWidgetExtension */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		B1061C7D2F16526C004C6C83 /* Word Of The Day */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				B10635EB2F28DC6A004C6C83 /* Exceptions for "Word Of The Day" folder in "WordOfTheDayWidgetExtension" target */,
+			);
 			path = "Word Of The Day";
+			sourceTree = "<group>";
+		};
+		B1061CA32F1660C0004C6C83 /* WordOfTheDayWidget */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				B1061CB42F1660C1004C6C83 /* Exceptions for "WordOfTheDayWidget" folder in "WordOfTheDayWidgetExtension" target */,
+			);
+			path = WordOfTheDayWidget;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -26,13 +94,25 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		B1061C9A2F1660C0004C6C83 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B1061CA22F1660C0004C6C83 /* SwiftUI.framework in Frameworks */,
+				B1061CA02F1660C0004C6C83 /* WidgetKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
 		B1061C722F16526C004C6C83 = {
 			isa = PBXGroup;
 			children = (
+				B1061CBC2F16638D004C6C83 /* WordOfTheDayWidgetExtension.entitlements */,
 				B1061C7D2F16526C004C6C83 /* Word Of The Day */,
+				B1061CA32F1660C0004C6C83 /* WordOfTheDayWidget */,
+				B1061C9E2F1660C0004C6C83 /* Frameworks */,
 				B1061C7C2F16526C004C6C83 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -41,8 +121,18 @@
 			isa = PBXGroup;
 			children = (
 				B1061C7B2F16526C004C6C83 /* Word Of The Day.app */,
+				B1061C9D2F1660C0004C6C83 /* WordOfTheDayWidgetExtension.appex */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		B1061C9E2F1660C0004C6C83 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				B1061C9F2F1660C0004C6C83 /* WidgetKit.framework */,
+				B1061CA12F1660C0004C6C83 /* SwiftUI.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -55,10 +145,12 @@
 				B1061C772F16526C004C6C83 /* Sources */,
 				B1061C782F16526C004C6C83 /* Frameworks */,
 				B1061C792F16526C004C6C83 /* Resources */,
+				B1061CB82F1660C1004C6C83 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				B1061CB22F1660C1004C6C83 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				B1061C7D2F16526C004C6C83 /* Word Of The Day */,
@@ -69,6 +161,28 @@
 			productName = "Word Of The Day";
 			productReference = B1061C7B2F16526C004C6C83 /* Word Of The Day.app */;
 			productType = "com.apple.product-type.application";
+		};
+		B1061C9C2F1660C0004C6C83 /* WordOfTheDayWidgetExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B1061CB52F1660C1004C6C83 /* Build configuration list for PBXNativeTarget "WordOfTheDayWidgetExtension" */;
+			buildPhases = (
+				B1061C992F1660C0004C6C83 /* Sources */,
+				B1061C9A2F1660C0004C6C83 /* Frameworks */,
+				B1061C9B2F1660C0004C6C83 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				B1061CA32F1660C0004C6C83 /* WordOfTheDayWidget */,
+			);
+			name = WordOfTheDayWidgetExtension;
+			packageProductDependencies = (
+			);
+			productName = WordOfTheDayWidgetExtension;
+			productReference = B1061C9D2F1660C0004C6C83 /* WordOfTheDayWidgetExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
@@ -83,6 +197,9 @@
 					B1061C7A2F16526C004C6C83 = {
 						CreatedOnToolsVersion = 16.4;
 					};
+					B1061C9C2F1660C0004C6C83 = {
+						CreatedOnToolsVersion = 16.4;
+					};
 				};
 			};
 			buildConfigurationList = B1061C762F16526C004C6C83 /* Build configuration list for PBXProject "Word Of The Day" */;
@@ -94,18 +211,28 @@
 			);
 			mainGroup = B1061C722F16526C004C6C83;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = B1061C7C2F16526C004C6C83 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
 				B1061C7A2F16526C004C6C83 /* Word Of The Day */,
+				B1061C9C2F1660C0004C6C83 /* WordOfTheDayWidgetExtension */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		B1061C792F16526C004C6C83 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B1061C9B2F1660C0004C6C83 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -122,7 +249,22 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		B1061C992F1660C0004C6C83 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		B1061CB22F1660C1004C6C83 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = B1061C9C2F1660C0004C6C83 /* WordOfTheDayWidgetExtension */;
+			targetProxy = B1061CB12F1660C1004C6C83 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		B1061C842F16526D004C6C83 /* Debug */ = {
@@ -251,9 +393,10 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "Word Of The Day/Word Of The Day.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = Z7M5PRJ3CY;
+				DEVELOPMENT_TEAM = 4YFFPCXWL7;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -266,7 +409,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.kbsamet.Word-Of-The-Day";
+				PRODUCT_BUNDLE_IDENTIFIER = com.kbsamet.wordoftheday;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -279,9 +422,10 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "Word Of The Day/Word Of The Day.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = Z7M5PRJ3CY;
+				DEVELOPMENT_TEAM = 4YFFPCXWL7;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -294,8 +438,64 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.kbsamet.Word-Of-The-Day";
+				PRODUCT_BUNDLE_IDENTIFIER = com.kbsamet.wordoftheday;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		B1061CB62F1660C1004C6C83 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = WordOfTheDayWidgetExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 4YFFPCXWL7;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = WordOfTheDayWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = WordOfTheDayWidget;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.kbsamet.wordoftheday.wordWordOfTheDayWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		B1061CB72F1660C1004C6C83 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = WordOfTheDayWidgetExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 4YFFPCXWL7;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = WordOfTheDayWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = WordOfTheDayWidget;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.kbsamet.wordoftheday.wordWordOfTheDayWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -319,6 +519,15 @@
 			buildConfigurations = (
 				B1061C872F16526D004C6C83 /* Debug */,
 				B1061C882F16526D004C6C83 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		B1061CB52F1660C1004C6C83 /* Build configuration list for PBXNativeTarget "WordOfTheDayWidgetExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B1061CB62F1660C1004C6C83 /* Debug */,
+				B1061CB72F1660C1004C6C83 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

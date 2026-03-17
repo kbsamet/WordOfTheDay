@@ -15,3 +15,5 @@ struct Word_Of_The_DayApp: App {
         }
     }
 }
+
+
