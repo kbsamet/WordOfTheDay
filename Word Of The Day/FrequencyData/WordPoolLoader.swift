@@ -9,11 +9,7 @@ import Foundation
 
 
 final class WordPoolLoader {
-    struct FrequencyLevelThresholds {
-        static let beginnerMax = 3_000
-        static let intermediateMax = 10_000
-        static let advancedMax = 50_000
-    }
+
     
     static func loadWords(
         language: WiktionaryLanguage,
@@ -49,6 +45,8 @@ final class WordPoolLoader {
             return filterEnglish(words, level: level)
         case .german:
             return filterGerman(words, level: level)
+        case .turkish:
+            return filterTurkish(words, level: level)
         default:
             return words
         }
@@ -69,6 +67,7 @@ final class WordPoolLoader {
             return words.filter { $0.rank > 6_000 && $0.rank <= 20_000 }
         }
     }
+    
     private static func filterGerman(_ words: [FrequencyWord],level: LanguageLevel) -> [FrequencyWord]{
         
         switch level {
@@ -80,6 +79,19 @@ final class WordPoolLoader {
             
         case .advanced:
             return words.filter { $0.rank <= 50_000 }
+        }
+    }
+    
+    private static func filterTurkish(_ words: [FrequencyWord], level: LanguageLevel) -> [FrequencyWord] {
+        switch level {
+        case .beginner:
+            return words.filter { $0.rank >= 300_000 }
+            
+        case .intermediate:
+            return words.filter { $0.rank < 300_000 && $0.rank >= 5_000 }
+            
+        case .advanced:
+            return words.filter { $0.rank < 5_000 }
         }
     }
     
@@ -106,14 +118,14 @@ final class WordPoolLoader {
         
         static func allowed(for level: LanguageLevel) -> Set<PartOfSpeech> {
             switch level {
-            case .beginner:
-                return [.noun, .verb, .adjective]
-                
-            case .intermediate:
-                return [.noun, .verb, .adjective, .adverb]
-                
-            case .advanced:
-                return [.noun, .verb, .adjective, .adverb]
+                case .beginner:
+                    return [.noun, .verb, .adjective]
+                    
+                case .intermediate:
+                    return [.noun, .verb, .adjective, .adverb]
+                    
+                case .advanced:
+                    return [.noun, .verb, .adjective, .adverb]
             }
         }
     }

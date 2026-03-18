@@ -85,17 +85,21 @@ struct WordWidgetView: View {
     var entry: Provider.Entry
     @Environment(\.widgetFamily) var family
 
+    var definitions: [String] {
+        entry.data?.definition
+            .components(separatedBy: "\n")
+            .filter { !$0.trimmingCharacters(in: .whitespaces).isEmpty } ?? []
+    }
+
     var body: some View {
         if let data = entry.data {
             switch family {
 
-            // ── Lock screen: inline ───────────────────────────────────────
             case .accessoryInline:
                 Text(data.word)
                     .font(.system(size: 13, weight: .semibold, design: .serif).italic())
                     .containerBackground(for: .widget) { oxfordBlue }
 
-            // ── Lock screen: circular ─────────────────────────────────────
             case .accessoryCircular:
                 ZStack {
                     Circle()
@@ -140,15 +144,25 @@ struct WordWidgetView: View {
         }
     }
 
-    // ── Medium / Large widget ─────────────────────────────────────────────────
     @ViewBuilder
     private func homeWidgetView(data: WordEntryData) -> some View {
+        // Calculate how many definitions can fit based on widget family
+        let definitionsToShow: Int = {
+            switch family {
+            case .systemMedium:
+                // Medium: limit to 2 definitions with multiline support
+                return min(definitions.count, 2)
+            case .systemLarge:
+                // Large: limit to 5 definitions with multiline support
+                return min(definitions.count, 5)
+            default:
+                return definitions.count
+            }
+        }()
+        
+        let visibleDefinitions = Array(definitions.prefix(definitionsToShow))
+        
         ZStack {
-            // Decorative circle
-            Circle()
-                .stroke(.white.opacity(0.05), lineWidth: 0.5)
-                .frame(width: 140, height: 140)
-                .offset(x: 80, y: -60)
 
             HStack(alignment: .top, spacing: 0) {
                 VStack(alignment: .leading, spacing: 0) {
@@ -182,13 +196,31 @@ struct WordWidgetView: View {
                         .frame(width: 28, height: 0.75)
                         .padding(.bottom, 10)
 
-                    Text(data.definition
-                        .components(separatedBy: "\n")
-                        .first ?? data.definition)
-                        .font(.system(size: 11, weight: .regular, design: .serif))
-                        .foregroundStyle(.white.opacity(0.68))
-                        .lineSpacing(3)
-                        .lineLimit(family == .systemLarge ? 6 : 3)
+                     VStack(alignment: .leading, spacing: 6) {
+                         ForEach(Array(visibleDefinitions.enumerated()), id: \.offset) { index, def in
+                             HStack(alignment: .top, spacing: 8) {
+                                 ZStack {
+                                     Circle()
+                                         .fill(.white.opacity(0.08))
+                                         .frame(width: 18, height: 18)
+                                     Text("\(index + 1)")
+                                         .font(.system(size: 8, weight: .regular).monospaced())
+                                         .foregroundStyle(.white.opacity(0.6))
+                                 }
+                                 .padding(.top, 0.5)
+                                 
+                                 // Display definition text with links preserved as plain text
+                                 // (widgets don't support interactive links)
+                                 Text(DefinitionWithLinks(from: def).plainText)
+                                     .font(.system(size: 10, weight: .regular, design: .serif))
+                                     .foregroundStyle(.white.opacity(0.68))
+                                     .lineSpacing(2)
+                                     .fixedSize(horizontal: false, vertical: true)
+                                 
+                                 Spacer()
+                            }
+                         }
+                     }
 
                     Spacer()
                 }
@@ -225,14 +257,14 @@ struct WordOfTheDayWidget: Widget {
     }
 }
 
-#Preview(as: .accessoryRectangular) {
+#Preview(as: .systemMedium) {
     WordOfTheDayWidget()
 } timeline: {
     WordEntry(
         date: .now,
         data: WordEntryData(
             word: "Anleihe",
-            definition: "An interest-bearing security; a company or state borrows money from the public.\nA sum of money that is borrowed.",
+            definition: "An interest-bearing security; a company or state borrows money from the public.\nA sum of money that is borrowed.\nA sum of money that is borrowed.\nA sum of money that is borrowed.\nA sum of money that is borrowed.\nA sum of money that is borrowed.",
             language: "German",
             level: "Intermediate"
         )

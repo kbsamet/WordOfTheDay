@@ -23,6 +23,7 @@ class WiktionaryClient {
     ) async throws -> String {
         
         let url = buildURL(word: word, language: language)
+        print(url)
         let (data, _) = try await URLSession.shared.data(from: url)
         
         let decoded = try JSONDecoder().decode(WiktionaryParseResponse.self, from: data)
@@ -78,6 +79,8 @@ extension WiktionaryClient {
             return parseDefinitionEnglish(from: text, languageHeader: languageHeader)
         case .german:
             return parseDefinitionGerman(from: text)
+        case .turkish:
+            return parseDefinitionTurkish(from: text)
         default:
             return nil
         }
@@ -130,6 +133,32 @@ extension WiktionaryClient {
             lines: lines
         )
         
+        let formatted = formatDefinitions(definitions)
+        return formatted
+    }
+    
+    func parseDefinitionTurkish(from text: String) -> String? {
+        let lines = text.components(separatedBy: "\n")
+        var collecting = false
+        var result: [String] = []
+        
+        for line in lines {
+            if line.contains("==Türkçe==") {
+                collecting = true
+                continue
+            }
+            
+            // Stop when another main language section starts (==...== but not ===...===)
+            if collecting && line.hasPrefix("==") && !line.hasPrefix("===") {
+                break
+            }
+            
+            if collecting {
+                result.append(line)
+            }
+        }
+        
+        let definitions = extractDefinitionsTurkish(from: result)
         let formatted = formatDefinitions(definitions)
         return formatted
     }
@@ -195,6 +224,28 @@ extension WiktionaryClient {
 
         return definitions
     }
+    
+    private func extractDefinitionsTurkish(from lines: [String]) -> [String] {
+        var definitions: [String] = []
+        
+        for line in lines {
+            let trimmed = line.trimmingCharacters(in: .whitespaces)
+            
+            // Extract definition lines (those starting with #)
+            if trimmed.hasPrefix("#")  && !trimmed.hasPrefix("#:") {
+                let cleaned = cleanWiktionaryMarkup(
+                    trimmed.dropFirst(2).trimmingCharacters(in: .whitespaces)
+                )
+                definitions.append(cleaned)
+                
+                if definitions.count >= 2 {
+                    break
+                }
+            }
+        }
+        
+        return definitions
+    }
 
     
     
@@ -207,32 +258,28 @@ extension WiktionaryClient {
             with: "",
             options: .regularExpression
         )
-        
-        // Replace links [[word|label]] → label
         result = result.replacingOccurrences(
-            of: "\\[\\[([^\\]|]+)\\|([^\\]]+)\\]\\]",
-            with: "$2",
+            of: "\\{.*?\\}\\}",
+            with: "",
             options: .regularExpression
         )
-        
-        // Replace links [[word]] → word
-        result = result.replacingOccurrences(
-            of: "\\[\\[([^\\]]+)\\]\\]",
-            with: "$1",
-            options: .regularExpression
-        )
-        
         result = result.replacingOccurrences(
             of: "\\[\\d+\\]",
             with: "",
             options: .regularExpression
         )
         
-        result = result.replacingOccurrences(of: ":", with: "")
+        result = result.replacingOccurrences(
+            of: ":",
+            with: ""
+        )
         
         return result.trimmingCharacters(in: .whitespaces)
     }
     
+    func countDefinitions(in text: String) -> Int {
+        text.split(separator: "\n").filter { !$0.trimmingCharacters(in: .whitespaces).isEmpty }.count
+    }
     
     func randomWordWithDefinition(
         language: WiktionaryLanguage,
@@ -260,6 +307,13 @@ extension WiktionaryClient {
                     word: word,
                     language: language
                 )
+                
+                // Validate: at least 2 definitions
+                let definitionCount = countDefinitions(in: definition)
+                guard definitionCount >= 2 else {
+                    attempts += 1
+                    continue
+                }
                 
                 return WordWithDefinition(
                     word: word,

@@ -36,6 +36,8 @@ class FrequencyListParser {
             return parseEnglish(text)
         case .german:
             return parseGerman(text)
+        case .turkish:
+            return parseTurkish(text)
         default:
             return []
         }
@@ -129,6 +131,33 @@ class FrequencyListParser {
             }
     }
     
-    
-    
+    private static func parseTurkish(_ text: String) -> [FrequencyWord] {
+        return text
+            .split(whereSeparator: \.isNewline)
+            .map(String.init)
+            .compactMap { line -> FrequencyWord? in
+                let trimmed = line.trimmingCharacters(in: .whitespaces)
+                guard !trimmed.isEmpty else { return nil }
+                
+                let parts = trimmed.split(separator: " ", maxSplits: 1)
+                guard parts.count == 2 else { return nil }
+                
+                let word = String(parts[0])
+                let frequency = Int(String(parts[1])) ?? 0
+                
+                // Word validation (skip empty strings and punctuation)
+                guard !word.isEmpty,
+                      word.range(
+                        of: #"^[a-zA-Zçğıöşüa-zÇĞİÖŞÜ]+$"#,
+                        options: .regularExpression
+                      ) != nil
+                else {
+                    return nil
+                }
+                
+                return FrequencyWord(
+                    rank: frequency, word: word, pos: .noun
+                )
+            }
+    }
 }
