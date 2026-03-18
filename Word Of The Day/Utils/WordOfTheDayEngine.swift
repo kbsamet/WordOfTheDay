@@ -22,6 +22,7 @@ struct WordOfTheDayEngine {
     }
     
     static func wordIndex(for date: Date, total: Int, attemptNumber: Int = 0) -> Int {
+        if total == 0 { return 0 }
         let day = Calendar.current.ordinality(of: .day, in: .year, for: date) ?? 1
         let seed = day + (attemptNumber * 366) // deterministic but doesn't collide with following days
         return seed % total
@@ -164,7 +165,6 @@ struct WordOfTheDayEngine {
             level: level
         )
         
-        WordCache.shared.save(entry, for: key)
         return entry
     }
     

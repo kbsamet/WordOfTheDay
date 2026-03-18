@@ -7,22 +7,6 @@
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            uuid = "707C5C5D-9991-452D-A096-672C7050D593"
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "Word Of The Day/Views/WordOfTheDayView.swift"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "181"
-            endingLineNumber = "181"
-            landmarkName = "body"
-            landmarkType = "24">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
             uuid = "2F515DE7-5E78-4B01-B1C9-EBAE815ED27E"
             shouldBeEnabled = "No"
             ignoreCount = "0"
@@ -30,26 +14,10 @@
             filePath = "Word Of The Day/Utils/WordOfTheDayEngine.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "35"
-            endingLineNumber = "35"
+            startingLineNumber = "36"
+            endingLineNumber = "36"
             landmarkName = "extractPOSFromDefinition(_:language:)"
             landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "079DC6C5-6C1A-4B40-BA81-77B4FB7F693D"
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "Word Of The Day/Views/WordOfTheDayView.swift"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "190"
-            endingLineNumber = "190"
-            landmarkName = "body"
-            landmarkType = "24">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
@@ -65,6 +33,22 @@
             startingLineNumber = "161"
             endingLineNumber = "161"
             landmarkName = "parseDefinitionTurkish(from:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "D824D7DA-0F74-461A-A5AA-10C4217DB73F"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "Word Of The Day/Views/DefinitionTextView.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "20"
+            endingLineNumber = "20"
+            landmarkName = "isValidLink(_:)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>

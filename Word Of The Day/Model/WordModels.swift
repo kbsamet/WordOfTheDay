@@ -47,11 +47,6 @@ struct WordEntryData: Codable {
     let level: String
 }
 
-enum DefinitionSegment: Equatable {
-    case text(String)
-    case link(word: String, displayText: String)
-}
-
 
 enum WiktionaryError: Error {
     case definitionNotFound

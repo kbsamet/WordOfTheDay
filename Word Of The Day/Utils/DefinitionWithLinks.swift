@@ -4,75 +4,112 @@
 //
 //  Created by Koray Samet Kucukbayraktar on 18.03.2026.
 //
+//
+//  DefinitionWithLinks.swift
+//  Word Of The Day
+//
+//  Created by Koray Samet Kucukbayraktar on 18.03.2026.
+//
+
+enum DefinitionSegment {
+    case text(String, hasTrailingSpace: Bool)
+    case link(word: String, displayText: String, hasTrailingSpace: Bool)
+
+    var hasTrailingSpace: Bool {
+        switch self {
+        case .text(_, let space):               return space
+        case .link(_, _, let space):            return space
+        }
+    }
+
+    var displayText: String {
+        switch self {
+        case .text(let t, _):                   return t
+        case .link(_, let d, _):               return d
+        }
+    }
+}
 
 struct DefinitionWithLinks {
     let segments: [DefinitionSegment]
-    
-    /// Create from raw definition text containing [[word]] markup
+
     init(from text: String) {
         self.segments = DefinitionWithLinks.parseDefinition(text)
     }
-    
-    /// Extract plain text from all segments
+
     var plainText: String {
         segments.map { segment in
-            switch segment {
-            case .text(let text):
-                return text
-            case .link(_, let displayText):
-                return displayText
-            }
+            let space = segment.hasTrailingSpace ? " " : ""
+            return segment.displayText + space
         }.joined()
     }
-    
+
     private static func parseDefinition(_ text: String) -> [DefinitionSegment] {
         var segments: [DefinitionSegment] = []
         var currentPosition = text.startIndex
-        
+
         while currentPosition < text.endIndex {
-            // Look for [[...]] pattern
             if let linkStart = text[currentPosition...].range(of: "[[") {
-                // Add text before the link
+
+                // ── Plain text before the link ────────────────────────────
                 if currentPosition < linkStart.lowerBound {
                     let textBefore = String(text[currentPosition..<linkStart.lowerBound])
-                    segments.append(.text(textBefore))
+                    segments.append(contentsOf: plainSegments(from: textBefore))
                 }
-                
-                // Find the end of the link
+
+                // ── Parse the link ────────────────────────────────────────
                 if let linkEnd = text[linkStart.upperBound...].range(of: "]]") {
                     let linkContent = String(text[linkStart.upperBound..<linkEnd.lowerBound])
-                    
-                    // Parse [[word|displayText]] or [[word]]
+
+                    let afterLink     = linkEnd.upperBound
+                    let hasSpace      = afterLink < text.endIndex && text[afterLink] == " "
+                    // Consume the space so it doesn't appear again in plain text
+                    currentPosition   = hasSpace ? text.index(after: afterLink) : afterLink
+
                     if let pipeIndex = linkContent.firstIndex(of: "|") {
-                        let word = String(linkContent[..<pipeIndex])
+                        let word        = String(linkContent[..<pipeIndex])
                         let displayText = String(linkContent[linkContent.index(after: pipeIndex)...])
-                        segments.append(.link(word: word, displayText: displayText))
+                        segments.append(.link(word: word, displayText: displayText, hasTrailingSpace: hasSpace))
                     } else {
-                        segments.append(.link(word: linkContent, displayText: linkContent))
+                        segments.append(.link(word: linkContent, displayText: linkContent, hasTrailingSpace: hasSpace))
                     }
-                    
-                    currentPosition = linkEnd.upperBound
+
                 } else {
-                    // Malformed link, treat as text
-                    let textBefore = String(text[currentPosition..<linkStart.upperBound])
-                    segments.append(.text(textBefore))
+                    // Malformed — treat as plain text
+                    let raw = String(text[currentPosition..<linkStart.upperBound])
+                    segments.append(contentsOf: plainSegments(from: raw))
                     currentPosition = linkStart.upperBound
                 }
+
             } else {
-                // No more links, add remaining text
+                // No more links — consume remaining text
                 let remaining = String(text[currentPosition...])
                 if !remaining.isEmpty {
-                    segments.append(.text(remaining))
+                    segments.append(contentsOf: plainSegments(from: remaining))
                 }
                 break
             }
         }
-        
-        // If no segments were created, return the original text
+
         if segments.isEmpty && !text.isEmpty {
-            segments.append(.text(text))
+            segments.append(.text(text, hasTrailingSpace: false))
         }
-        
+
         return segments
+    }
+
+    // Splits a plain text run into per-word segments with correct trailing space
+    private static func plainSegments(from text: String) -> [DefinitionSegment] {
+        let words = text.components(separatedBy: " ")
+        var result: [DefinitionSegment] = []
+
+        for (i, word) in words.enumerated() {
+            guard !word.isEmpty else { continue }
+            let isLast      = i == words.count - 1
+            let hasSpace    = !isLast || text.hasSuffix(" ")
+            result.append(.text(word, hasTrailingSpace: hasSpace))
+        }
+
+        return result
     }
 }
