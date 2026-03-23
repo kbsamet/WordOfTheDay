@@ -74,61 +74,46 @@ class FrequencyListParser {
         
         return results
     }
-    
     private static func parseGerman(_ text: String) -> [FrequencyWord] {
-        let allowedGermanPOS: Set<String> = [
-            "NN",       // noun
-            "VVINF",    // verb infinitive
-            "VAFIN",    // auxiliary verb
-            "ADJ",
-            "ADV"
+        let allowedGermanPOS: Set<String> = ["NN", "VVINF", "VAFIN", "ADJ", "ADV"]
+
+        let posMap: [String: PartOfSpeech] = [
+            "NN":    .noun,
+            "VVINF": .verb,
+            "VAFIN": .verb,
+            "ADJ":   .adjective,
+            "ADV":   .adverb
         ]
-        
-       return text
-            .split(separator: "\n")
-            .compactMap { line -> FrequencyWord? in
-                let parts = line.split(separator: "\t")
-                guard parts.count == 4 else { return nil }
-                
-                let lemma = String(parts[1])
-                let pos_str = String(parts[2])
-                
-                let frequency = Double(String(parts[3])) ?? 0
-                
-                // POS filtering
-                guard allowedGermanPOS.contains(pos_str) else {
-                    return nil
-                }
-                var pos : PartOfSpeech = .noun
-                switch pos_str{
-                case "NN":
-                    pos = .noun
-                case "VVINF":
-                    pos = .verb
-                case "VAFIN":
-                    pos = .verb
-                case "ADJ":
-                    pos = .adjective
-                case "ADV":
-                    pos = .adverb
-                    
-                default:
-                    pos = .noun
-                }
-                
-                // Word validation (skip punctuation & junk)
-                guard lemma.count > 1,
-                      lemma.range(
-                        of: #"^[a-zA-ZäöüÄÖÜß]+$"#,
-                        options: .regularExpression
-                      ) != nil
-                else {
-                    return nil
-                }
-                return FrequencyWord(
-                    rank: Int(frequency), word: lemma, pos: pos
-                )
+
+        // Group by lemma, keep highest frequency (max rank) per lemma
+        var best: [String: FrequencyWord] = [:]
+
+        for line in text.split(separator: "\n") {
+            let parts = line.split(separator: "\t")
+            guard parts.count == 4,
+                  let pos = posMap[String(parts[2])],
+                  let frequency = Double(String(parts[3]))
+            else { continue }
+
+            let lemma = String(parts[1])
+
+            guard lemma.count > 1,
+                  lemma.range(of: #"^[a-zA-ZäöüÄÖÜß]+$"#, options: .regularExpression) != nil
+            else { continue }
+
+            let rank = Int(frequency)
+            let candidate = FrequencyWord(rank: rank, word: lemma, pos: pos)
+
+            // For German, higher rank = more frequent (beginner threshold is >= 100_000)
+            // so keep the entry with the highest rank number
+            if let existing = best[lemma] {
+                if rank > existing.rank { best[lemma] = candidate }
+            } else {
+                best[lemma] = candidate
             }
+        }
+
+        return Array(best.values)
     }
     
     private static func parseTurkish(_ text: String) -> [FrequencyWord] {

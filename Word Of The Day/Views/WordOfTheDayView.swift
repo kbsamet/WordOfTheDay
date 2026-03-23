@@ -13,30 +13,66 @@ import SwiftUI
 import Translation
 
 struct WordOfTheDayView: View {
-
+    
     @StateObject private var vm = WordOfTheDayViewModel()
+    @State private var dragOffset: CGFloat = 0
+    @State private var screenWidth: CGFloat = UIScreen.main.bounds.width
+    
     var resetSettings: () -> ()
-
+    
     var body: some View {
         NavigationStack {
-            ZStack {
-                AppColor.color("oxfordBlue").ignoresSafeArea()
+            GeometryReader { geo in
+                ZStack {
+                    AppColor.color("oxfordBlue").ignoresSafeArea()
 
-                VStack(spacing: 0) {
-                    topBar
-                    wordCard
-                        .padding(.horizontal, 16)
-                        .padding(.bottom, 12)
-                    definitionsCard
-                        .padding(.horizontal, 16)
-                    Spacer()
+                    if vm.canGoBack && dragOffset > 0 {
+                        AppColor.color("cardBlue")
+                            .ignoresSafeArea()
+                            .opacity(dragOffset / geo.size.width * 0.4)
+                            .offset(x: -geo.size.width + dragOffset)
+                    }
+
+                    VStack(spacing: 0) {
+                        topBar
+                        wordCard.padding(.horizontal, 16).padding(.bottom, 12).frame(maxHeight: .infinity)
+                        definitionsCard.padding(.horizontal, 16)
+                    }
+                    .offset(x: dragOffset)
                 }
+                .gesture(
+                    DragGesture(minimumDistance: 40, coordinateSpace: .local)
+                        .onChanged { value in
+                            let isHorizontal = abs(value.translation.width) > abs(value.translation.height)
+                            guard isHorizontal, vm.canGoBack, value.translation.width > 0 else { return }
+
+                            let raw = value.translation.width
+                            dragOffset = raw * (1 - raw / (geo.size.width * 3))
+                        }
+                        .onEnded { value in
+                            let threshold = geo.size.width * 0.35
+                            let velocity  = value.predictedEndTranslation.width
+
+                            if dragOffset > threshold || velocity > 600 {
+                                withAnimation(.easeOut(duration: 0.2)) {
+                                    dragOffset = geo.size.width
+                                }
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                                    dragOffset = 0
+                                    vm.goBack()
+                                }
+                            } else {
+                                withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                                    dragOffset = 0
+                                }
+                            }
+                        }
+                )
             }
             .onAppear { vm.loadWord() }
             .translationPresentation(isPresented: $vm.showTranslation, text: vm.currentWord)
         }
     }
-
     private var topBar: some View {
         HStack {
             if vm.canGoBack {
@@ -53,16 +89,16 @@ struct WordOfTheDayView: View {
             } else {
                 Spacer().frame(width: 32)
             }
-
+            
             Spacer()
-
+            
             Text("Word of the Day")
                 .font(.system(size: 14, weight: .regular))
                 .foregroundStyle(.white.opacity(0.38))
                 .tracking(0.4)
-
+            
             Spacer()
-
+            
             Button(action: resetSettings) {
                 ZStack {
                     Circle()
@@ -77,7 +113,7 @@ struct WordOfTheDayView: View {
         .padding(.horizontal, 22)
         .padding(.bottom, 16)
     }
-
+    
     @ViewBuilder
     private var wordCard: some View {
         if vm.isLoading {
@@ -86,7 +122,7 @@ struct WordOfTheDayView: View {
             loadedWordCard
         }
     }
-
+    
     private var loadingWordCard: some View {
         ZStack {
             RoundedRectangle(cornerRadius: 22)
@@ -102,7 +138,7 @@ struct WordOfTheDayView: View {
             .padding(.vertical, 36)
         }
     }
-
+    
     private var loadedWordCard: some View {
         ZStack {
             RoundedRectangle(cornerRadius: 22)
@@ -110,20 +146,18 @@ struct WordOfTheDayView: View {
                     colors: [AppColor.color("cardBlueDark"), AppColor.color("cardBlue")],
                     startPoint: .topLeading, endPoint: .bottomTrailing
                 ))
-
-            Circle()
-                .stroke(.white.opacity(0.05), lineWidth: 0.5)
-                .frame(width: 160, height: 160)
-                .offset(x: 70, y: -52)
-
+            
+            
+            
             VStack(spacing: 0) {
+                Spacer()
                 Text("noun")
                     .font(.system(size: 9, weight: .regular).monospaced())
                     .tracking(3)
                     .foregroundStyle(.white.opacity(0.3))
                     .textCase(.uppercase)
                     .padding(.bottom, 10)
-
+                
                 Text(vm.currentWord)
                     .font(.system(size: 50, weight: .semibold, design: .serif).italic())
                     .foregroundStyle(.white)
@@ -131,18 +165,32 @@ struct WordOfTheDayView: View {
                     .lineLimit(1)
                     .minimumScaleFactor(0.6)
                     .padding(.bottom, 12)
-
-                Text(vm.selectedLanguage.displayName)
-                    .font(.system(size: 9, weight: .regular).monospaced())
-                    .tracking(1)
-                    .foregroundStyle(.white.opacity(0.45))
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 4)
-                    .background(.white.opacity(0.07))
-                    .clipShape(Capsule())
-
+                
+                HStack{
+                    Text(vm.selectedLanguage.displayName)
+                        .font(.system(size: 9, weight: .regular).monospaced())
+                        .tracking(1)
+                        .foregroundStyle(.white.opacity(0.45))
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 4)
+                        .background(.white.opacity(0.07))
+                        .clipShape(Capsule())
+                    if vm.currentWordlevel != nil{
+                        Text(vm.currentWordlevel?.rawValue ?? "")
+                            .font(.system(size: 9, weight: .regular).monospaced())
+                            .tracking(1)
+                            .foregroundStyle(vm.currentWordlevel?.color ?? vm.selectedLevel.color)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 4)
+                            .background(vm.currentWordlevel?.color.opacity(0.3) ?? vm.selectedLevel.color.opacity(0.3))
+                            .clipShape(Capsule())
+                    }
+                    
+                    
+                }
+                
                 Spacer().frame(height: 30)
-
+                
                 HStack(spacing: 12) {
                     Button(action: vm.copyToClipboard) {
                         ZStack {
@@ -152,7 +200,7 @@ struct WordOfTheDayView: View {
                                 .foregroundStyle(.white.opacity(0.45))
                         }
                     }
-
+                    
                     Button { vm.showTranslation = true } label: {
                         ZStack {
                             Circle().fill(.white.opacity(0.07)).frame(width: 48, height: 48)
@@ -163,11 +211,12 @@ struct WordOfTheDayView: View {
                     }
                 }
                 .padding(.top, 12)
+                Spacer()
             }
             .padding(.vertical, 36)
         }
     }
-
+    
     @ViewBuilder
     private var definitionsCard: some View {
         if vm.isLoading {
@@ -176,7 +225,7 @@ struct WordOfTheDayView: View {
             loadedDefinitionsCard
         }
     }
-
+    
     private var loadingDefinitionsCard: some View {
         VStack(alignment: .leading, spacing: 0) {
             RoundedRectangle(cornerRadius: 4).fill(.white.opacity(0.12)).frame(width: 80, height: 9).padding(.bottom, 16)
@@ -198,46 +247,64 @@ struct WordOfTheDayView: View {
         .background(.white.opacity(0.045))
         .clipShape(RoundedRectangle(cornerRadius: 18))
     }
-
+    
     private var loadedDefinitionsCard: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            Text("Definitions")
-                .font(.system(size: 9, weight: .regular).monospaced())
-                .tracking(3)
-                .foregroundStyle(.white.opacity(0.28))
-                .textCase(.uppercase)
-                .padding(.bottom, 16)
-
-            Spacer().frame(height: 20)
-
-            ForEach(Array(vm.definitions.prefix(5).enumerated()), id: \.offset) { index, line in
-                if index > 0 {
-                    Divider().overlay(.white.opacity(0.07)).padding(.vertical, 12)
-                }
-                HStack(alignment: .top, spacing: 12) {
-                    ZStack {
-                        Circle().fill(.white.opacity(0.08)).frame(width: 20, height: 20)
-                        Text("\(index + 1)")
-                            .font(.system(size: 9, weight: .regular).monospaced())
-                            .foregroundStyle(.white.opacity(0.6))
+            VStack(alignment: .leading, spacing: 0) {
+                Text("Definitions")
+                    .font(.system(size: 9, weight: .regular).monospaced())
+                    .tracking(3)
+                    .foregroundStyle(.white.opacity(0.28))
+                    .textCase(.uppercase)
+                    .padding(.bottom, 16)
+                
+                Spacer().frame(height: 20)
+                ScrollView{
+                    if vm.definitions.isEmpty {
+                        HStack {
+                            
+                            DefinitionSegmentView(
+                                line: "No definitions found",
+                                onLinkTap: { linkedWord in vm.pushWord(linkedWord) },
+                                prefetchedWords: vm.prefetchedWords
+                            )
+                            Spacer()
+                        }
+                        .padding(.top, 1)
+                    }else{
+                        ForEach(Array(vm.definitions.enumerated()), id: \.offset) { index, line in
+                            if index > 0 {
+                                Divider().overlay(.white.opacity(0.07)).padding(.vertical, 12)
+                            }
+                            HStack(alignment: .top, spacing: 12) {
+                                ZStack {
+                                    Circle().fill(.white.opacity(0.08)).frame(width: 20, height: 20)
+                                    Text("\(index + 1)")
+                                        .font(.system(size: 9, weight: .regular).monospaced())
+                                        .foregroundStyle(.white.opacity(0.6))
+                                }
+                                .padding(.top, 1)
+                                
+                                DefinitionSegmentView(
+                                    line: line,
+                                    onLinkTap: { linkedWord in vm.pushWord(linkedWord) },
+                                    prefetchedWords: vm.prefetchedWords
+                                )
+                                
+                                Spacer()
+                            }
+                        }
                     }
-                    .padding(.top, 1)
-
-                    DefinitionSegmentView(
-                        line: line,
-                        onLinkTap: { linkedWord in vm.pushWord(linkedWord) },
-                        prefetchedWords: vm.prefetchedWords
-                    )
-
-                    Spacer()
-                }
+                   
+                    
+                    Spacer().frame(height: 20)
+                }.scrollIndicators(.hidden)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .frame(maxWidth: 350)
             }
-
-            Spacer().frame(height: 20)
-        }
-        .padding(20)
-        .background(.white.opacity(0.045))
-        .clipShape(RoundedRectangle(cornerRadius: 18))
+            .padding(20)
+            .background(.white.opacity(0.045))
+            .clipShape(RoundedRectangle(cornerRadius: 18))
+        
     }
 }
 

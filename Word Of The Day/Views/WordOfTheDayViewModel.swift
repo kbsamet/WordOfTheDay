@@ -21,7 +21,7 @@ class WordOfTheDayViewModel: ObservableObject {
     // Prefetch cache: word -> definition (nil = no definition found)
     @Published private(set) var prefetchedWords: [String: String] = [:]
     @Published private(set) var isPrefetching: Bool = false
-
+    @Published private(set) var currentWordlevel : LanguageLevel?
     private(set) var selectedLanguage: WiktionaryLanguage = .english
     private(set) var selectedLevel: LanguageLevel = .beginner
 
@@ -33,11 +33,15 @@ class WordOfTheDayViewModel: ObservableObject {
 
     var canGoBack: Bool { wordStack.count > 1 }
 
+    func levelForWord(_ word: String) -> LanguageLevel? {
+        WordPoolLoader.level(of: word, language: selectedLanguage)
+    }
+    
     func loadWord() {
         isLoading = true
         selectedLevel    = LanguageLevel(rawValue: UserDefaults.standard.string(forKey: "selectedLevel") ?? "") ?? .beginner
         selectedLanguage = WiktionaryLanguage(rawValue: UserDefaults.standard.string(forKey: "selectedLanguage") ?? "") ?? .english
-
+        
         let words = WordPoolLoader.loadWords(language: selectedLanguage, level: selectedLevel)
 
         Task {
@@ -50,7 +54,8 @@ class WordOfTheDayViewModel: ObservableObject {
             currentWord       = entry.word.capitalized.components(separatedBy: "#")[0]
             currentDefinition = entry.definition
             isLoading         = false
-
+            currentWordlevel  = levelForWord(entry.word)
+            
             WidgetCenter.shared.reloadAllTimelines()
 
             // Prefetch links and generate weekly cache concurrently
@@ -63,6 +68,8 @@ class WordOfTheDayViewModel: ObservableObject {
             _ = await (prefetch, weekly)
         }
     }
+    
+    
 
     func pushWord(_ word: String) {
         wordStack.append(word)
@@ -91,9 +98,14 @@ class WordOfTheDayViewModel: ObservableObject {
             withAnimation {
                 currentWord       = word.capitalized.components(separatedBy: "#")[0]
                 currentDefinition = cached
-                isLoading         = false
+                currentWordlevel  = levelForWord(word)
             }
-            Task { await prefetchLinks(in: cached) }
+            Task {
+                await prefetchLinks(in: cached)
+                withAnimation{
+                    isLoading = false
+                }
+            }
             return
         }
 
@@ -105,11 +117,14 @@ class WordOfTheDayViewModel: ObservableObject {
             withAnimation {
                 currentWord       = word.capitalized.components(separatedBy: "#")[0]
                 currentDefinition = definition ?? ""
-                isLoading         = false
+                currentWordlevel  = levelForWord(word)
             }
             if let definition {
                 prefetchedWords[word] = definition
                 await prefetchLinks(in: definition)
+                withAnimation{
+                    isLoading = false
+                }
             }
         }
     }

@@ -12,13 +12,6 @@ struct LevelSelectionView: View {
     @State private var selectedLevel: LanguageLevel?
     let levelSelected: () -> ()
 
-    func accentColor(for level: LanguageLevel) -> Color {
-        switch level {
-        case .beginner:     return AppColor.color("gold")
-        case .intermediate: return AppColor.color("skyBlue")
-        case .advanced:     return AppColor.color("lavender")
-        }
-    }
 
     func description(for level: LanguageLevel) -> String {
         switch level {
@@ -72,19 +65,13 @@ struct LevelSelectionView: View {
                             HStack(spacing: 16) {
 
                                 Circle()
-                                    .fill(accentColor(for: level).opacity(selectedLevel == level ? 1 : 0.25))
+                                    .fill(level.color.opacity(selectedLevel == level ? 1 : 0.25))
                                     .frame(width: 8, height: 8)
 
                                 VStack(alignment: .leading, spacing: 5) {
                                     Text(level.rawValue)
                                         .font(.system(size: 22, weight: .semibold, design: .serif).italic())
                                         .foregroundStyle(.white.opacity(0.92))
-
-                                    Text(description(for: level))
-                                        .font(.system(size: 10, weight: .regular).monospaced())
-                                        .tracking(1)
-                                        .foregroundStyle(.white.opacity(0.38))
-                                        .textCase(.uppercase)
                                 }
 
                                 Spacer()
@@ -92,9 +79,9 @@ struct LevelSelectionView: View {
                                 if selectedLevel == level {
                                     Image(systemName: "checkmark")
                                         .font(.system(size: 12, weight: .semibold))
-                                        .foregroundStyle(accentColor(for: level))
+                                        .foregroundStyle(level.color)
                                         .padding(8)
-                                        .background(accentColor(for: level).opacity(0.12))
+                                        .background(level.color.opacity(0.12))
                                         .clipShape(Circle())
                                 } else {
                                     Image(systemName: "chevron.right")
@@ -129,7 +116,7 @@ struct LevelSelectionView: View {
                                 RoundedRectangle(cornerRadius: 18)
                                     .stroke(
                                         selectedLevel == level
-                                            ? accentColor(for: level).opacity(0.45)
+                                        ? level.color.opacity(0.45)
                                             : .white.opacity(0.07),
                                         lineWidth: selectedLevel == level ? 1 : 0.5
                                     )
@@ -174,7 +161,7 @@ struct LevelSelectionView: View {
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 17)
                         .background(
-                            selectedLevel.map { accentColor(for: $0) } ?? .white
+                            selectedLevel.map { $0.color } ?? .white
                         )
                         .clipShape(RoundedRectangle(cornerRadius: 16))
                     }

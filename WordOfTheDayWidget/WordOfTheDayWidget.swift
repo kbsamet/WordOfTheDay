@@ -96,9 +96,11 @@ struct WordWidgetView: View {
             switch family {
 
             case .accessoryInline:
-                Text(data.word)
-                    .font(.system(size: 13, weight: .semibold, design: .serif).italic())
-                    .containerBackground(for: .widget) { oxfordBlue }
+                Text(DefinitionWithLinks(from: data.definition).plainText)
+                    .font(.system(size: 10, weight: .regular, design: .serif))
+                    .foregroundStyle(.white.opacity(0.68))
+                    .lineSpacing(2)
+                    .fixedSize(horizontal: false, vertical: true)
 
             case .accessoryCircular:
                 ZStack {
@@ -122,10 +124,10 @@ struct WordWidgetView: View {
                         .font(.system(size: 14, weight: .semibold, design: .serif).italic())
                         .foregroundStyle(.white)
                         .lineLimit(1)
-
-                    Text(data.definition
+                    
+                    Text(DefinitionWithLinks(from: data.definition
                         .components(separatedBy: "\n")
-                        .first ?? data.definition)
+                        .first ?? data.definition).plainText)
                         .font(.system(size: 9, weight: .regular).monospaced())
                         .foregroundStyle(.white.opacity(0.5))
                         .lineLimit(2)
@@ -257,7 +259,7 @@ struct WordOfTheDayWidget: Widget {
     }
 }
 
-#Preview(as: .systemMedium) {
+#Preview(as: .accessoryRectangular) {
     WordOfTheDayWidget()
 } timeline: {
     WordEntry(

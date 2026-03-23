@@ -269,6 +269,10 @@ extension WiktionaryClient {
             options: .regularExpression
         )
         
+        result = result.replacingOccurrences(of: "<[^>]+>.*?</[^>]+>", with: "", options: .regularExpression)
+        result = result.replacingOccurrences(of: "<[^>]+/>", with: "", options: .regularExpression)
+        result = result.replacingOccurrences(of: "<[^>]+>", with: "", options: .regularExpression)
+
         result = result.replacingOccurrences(
             of: ":",
             with: ""

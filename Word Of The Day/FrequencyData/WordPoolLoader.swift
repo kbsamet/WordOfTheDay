@@ -10,6 +10,31 @@ import Foundation
 
 final class WordPoolLoader {
 
+    private static var wordLevelMap: [WiktionaryLanguage: [String: LanguageLevel]] = [:]
+    
+    static func buildWordLevelMap(for language: WiktionaryLanguage) -> [String: LanguageLevel] {
+        if let cached = wordLevelMap[language] { return cached }
+
+        guard let frequencyText = loadFrequencyFile(for: language) else { return [:] }
+
+        let allWords = FrequencyListParser.parse(frequencyText, language: language)
+        var map: [String: LanguageLevel] = [:]
+
+        for word in allWords {
+            let level = levelForRank(word.rank, language: language)
+            if word.word == "Anschlag"{
+                print("Anschlsag level \(level)")
+            }
+            map[word.word] = level
+        }
+
+        wordLevelMap[language] = map
+        return map
+    }
+    
+    static func level(of word: String, language: WiktionaryLanguage) -> LanguageLevel? {
+        buildWordLevelMap(for: language)[word]
+    }
     
     static func loadWords(
         language: WiktionaryLanguage,
@@ -35,65 +60,38 @@ final class WordPoolLoader {
         ).sorted()
     }
     
+    static func levelForRank(_ rank: Int, language: WiktionaryLanguage) -> LanguageLevel {
+        switch language {
+        case .english:
+            if rank <= 2_000  { return .beginner }
+            if rank <= 6_000  { return .intermediate }
+            return .advanced
+
+        case .german:
+            if rank >= 100_000 { return .beginner }
+            if rank >= 50_000  { return .intermediate }
+            return .advanced
+
+        case .turkish:
+            if rank >= 300_000 { return .beginner }
+            if rank >= 5_000   { return .intermediate }
+            return .advanced
+
+        default:
+            return .beginner
+        }
+    }
+    
     private static func filterByLevel(
         _ words: [FrequencyWord],
         level: LanguageLevel,
         language : WiktionaryLanguage
     ) -> [FrequencyWord] {
-        switch language {
-        case .english:
-            return filterEnglish(words, level: level)
-        case .german:
-            return filterGerman(words, level: level)
-        case .turkish:
-            return filterTurkish(words, level: level)
-        default:
-            return words
-        }
-        
+        words.filter { levelForRank($0.rank, language: language) == level }
     }
     
     
-    private static func filterEnglish(_ words: [FrequencyWord],level: LanguageLevel) -> [FrequencyWord]{
-        
-        switch level {
-        case .beginner:
-            return words.filter { $0.rank <= 2_000 }
-            
-        case .intermediate:
-            return words.filter { $0.rank > 2_000 && $0.rank <= 6_000 }
-            
-        case .advanced:
-            return words.filter { $0.rank > 6_000 && $0.rank <= 20_000 }
-        }
-    }
     
-    private static func filterGerman(_ words: [FrequencyWord],level: LanguageLevel) -> [FrequencyWord]{
-        
-        switch level {
-        case .beginner:
-            return words.filter { $0.rank >= 100_000 }
-            
-        case .intermediate:
-            return words.filter { $0.rank > 50_000 && $0.rank <= 100_000 }
-            
-        case .advanced:
-            return words.filter { $0.rank <= 50_000 }
-        }
-    }
-    
-    private static func filterTurkish(_ words: [FrequencyWord], level: LanguageLevel) -> [FrequencyWord] {
-        switch level {
-        case .beginner:
-            return words.filter { $0.rank >= 300_000 }
-            
-        case .intermediate:
-            return words.filter { $0.rank < 300_000 && $0.rank >= 5_000 }
-            
-        case .advanced:
-            return words.filter { $0.rank < 5_000 }
-        }
-    }
     
     // MARK: - File Loader
     

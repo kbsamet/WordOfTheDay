@@ -6,6 +6,7 @@
 //
 
 import WidgetKit
+import SwiftUI
 
 struct WiktionaryParseResponse: Decodable {
     let parse: Parse
@@ -59,9 +60,20 @@ enum WordSelectionError: Error {
 }
 enum LanguageLevel : String,CaseIterable,Identifiable {
     var id: String { rawValue }
-    case beginner = "Beginner"
-    case intermediate = "Intermediate"
-    case advanced = "Advanced"
+    case beginner = "Common"
+    case intermediate = "Uncommon"
+    case advanced = "Rare"
+    
+    var color : Color{
+        switch self {
+        case .beginner:
+            return AppColor.color("skyBlue")
+        case .intermediate:
+            return AppColor.color("lavender")
+        case .advanced:
+            return AppColor.color("gold")
+        }
+    }
 }
 
 enum WiktionaryLanguage: String,CaseIterable,Identifiable {

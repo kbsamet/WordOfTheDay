@@ -48,12 +48,7 @@ struct LanguageRow: View {
                             )
                         )
 
-                    // Decorative circle — top right
-                    Circle()
-                        .stroke(.white.opacity(0.05), lineWidth: 0.5)
-                        .frame(width: 80, height: 80)
-                        .offset(x: 28, y: -28)
-                        .clipped()
+                  
                 }
             )
             .clipShape(RoundedRectangle(cornerRadius: 18))
