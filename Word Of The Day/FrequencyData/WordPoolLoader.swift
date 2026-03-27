@@ -22,9 +22,6 @@ final class WordPoolLoader {
 
         for word in allWords {
             let level = levelForRank(word.rank, language: language)
-            if word.word == "Anschlag"{
-                print("Anschlsag level \(level)")
-            }
             map[word.word] = level
         }
 
@@ -76,10 +73,30 @@ final class WordPoolLoader {
             if rank >= 300_000 { return .beginner }
             if rank >= 5_000   { return .intermediate }
             return .advanced
-
-        default:
-            return .beginner
+            
+        case .french:
+            if rank <= 10_000  { return .beginner }
+            if rank <= 30_000  { return .intermediate }
+            return .advanced
+            
+        case .spanish:
+            if rank <= 10_000  { return .beginner }
+            if rank <= 30_000  { return .intermediate }
+            return .advanced
+        case .japanese:
+            if rank <= 5_000  { return .beginner }
+            if rank <= 15_000  { return .intermediate }
+            return .advanced
+        case .korean:
+            if rank <= 5_000  { return .beginner }
+            if rank <= 10_000  { return .intermediate }
+            return .advanced
+        case .russian:
+            if rank <= 10_000  { return .beginner }
+            if rank <= 30_000  { return .intermediate }
+            return .advanced
         }
+        
     }
     
     private static func filterByLevel(

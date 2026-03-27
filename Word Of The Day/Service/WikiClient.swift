@@ -19,11 +19,16 @@ class WiktionaryClient {
     
     func fetchDefinition(
         word: String,
-        language: WiktionaryLanguage
+        language: WiktionaryLanguage,
+        isRedirect: Bool = false,
+        redirectedFrom : String = ""
     ) async throws -> String {
         
         let url = buildURL(word: word, language: language)
         print(url)
+        if isRedirect{
+            print("redirected from \(redirectedFrom)")
+        }
         let (data, _) = try await URLSession.shared.data(from: url)
         
         let decoded = try JSONDecoder().decode(WiktionaryParseResponse.self, from: data)
@@ -31,12 +36,23 @@ class WiktionaryClient {
         
         guard let definition = parseDefinition(
             from: wikitext,
-            languageHeader: language.sectionHeader,
             language: language
         ) else {
             throw WiktionaryError.definitionNotFound
         }
         
+        switch language{
+        case .japanese:
+            if definition.hasPrefix("[[ja-redirect:") {
+                if isRedirect{
+                    return ""
+                }
+                let hiragana = definition.replacingOccurrences(of: "[[ja-redirect:", with: "").replacingOccurrences(of: "]]", with: "")
+                return try await fetchDefinition(word: hiragana, language: .japanese,isRedirect: true,redirectedFrom: word)
+            }
+        default:
+            break
+        }
         return definition
     }
     
@@ -73,16 +89,24 @@ extension WiktionaryClient {
         && !trimmed.hasPrefix("===")
     }
     
-    func parseDefinition(from text: String, languageHeader: String, language : WiktionaryLanguage) -> String?{
+    func parseDefinition(from text: String, language : WiktionaryLanguage) -> String?{
         switch language {
         case .english:
-            return parseDefinitionEnglish(from: text, languageHeader: languageHeader)
+            return parseDefinitionEnglish(from: text)
         case .german:
             return parseDefinitionGerman(from: text)
         case .turkish:
             return parseDefinitionTurkish(from: text)
-        default:
-            return nil
+        case .french:
+            return parseDefinitionFrench(from: text)
+        case .spanish:
+            return parseDefinitionSpanish(from: text)
+        case .japanese:
+            return parseDefinitionJapanese(from: text)
+        case .korean:
+            return parseDefinitionKorean(from: text)
+        case .russian:
+            return parseDefinitionRussian(from: text)
         }
     }
     
@@ -116,12 +140,11 @@ extension WiktionaryClient {
 
     
     func parseDefinitionEnglish(
-        from wikitext: String,
-        languageHeader: String
+        from wikitext: String
     ) -> String? {
         
         guard let langRange = wikitext.range(
-            of: "==\(languageHeader)=="
+            of: "==English=="
         ) else { return nil }
         
         let section = wikitext[langRange.upperBound...]
@@ -162,6 +185,277 @@ extension WiktionaryClient {
         let formatted = formatDefinitions(definitions)
         return formatted
     }
+    
+    func parseDefinitionFrench(from text: String) -> String? {
+        let lines = text.components(separatedBy: "\n")
+        var collecting = false
+        var result: [String] = []
+
+        for line in lines {
+            if line.contains("== {{langue|fr}} ==") || line.contains("==français==") {
+                collecting = true
+                continue
+            }
+
+            // Stop when another main language section starts
+            if collecting && line.hasPrefix("==") && !line.hasPrefix("===") {
+                break
+            }
+
+            if collecting {
+                result.append(line)
+            }
+        }
+
+        let definitions = extractDefinitionsFrench(from: result)
+        let formatted = formatDefinitions(definitions)
+        return formatted
+    }
+    
+    func parseDefinitionSpanish(from text: String) -> String? {
+        let lines = text.components(separatedBy: "\n")
+        var collecting = false
+        var result: [String] = []
+
+        for line in lines {
+            if line.contains("== {{lengua|es}} ==") || line.contains("==español==") {
+                collecting = true
+                continue
+            }
+            if collecting && line.hasPrefix("==") && !line.hasPrefix("===") { break }
+            if collecting { result.append(line) }
+        }
+
+        let definitions = extractDefinitionsSpanish(from: result)
+        let formatted = formatDefinitions(definitions)
+        return formatted
+    }
+    
+    func parseDefinitionJapanese(from text: String) -> String? {
+        // Detect kanji stub — redirects to hiragana form
+        // e.g. {{wagokanji of|たべる}} or {{ja-kanjitab}}
+        if let redirect = extractJapaneseRedirect(from: text) {
+            // Return a special marker so the client can re-fetch
+            return "[[ja-redirect:\(redirect)]]"
+        }
+
+        let lines = text.components(separatedBy: "\n")
+        var collecting = false
+        var result: [String] = []
+
+        for line in lines {
+            if line.contains("==Japanese==") || line.contains("=={{L|ja}}==") {
+                collecting = true
+                continue
+            }
+            if collecting && line.hasPrefix("==") && !line.hasPrefix("===") { break }
+            if collecting { result.append(line) }
+        }
+
+        let definitions = extractDefinitionsJapanese(from: result)
+        let formatted = formatDefinitions(definitions)
+        return formatted.isEmpty ? nil : formatted
+    }
+
+    private func extractJapaneseRedirect(from text: String) -> String? {
+        // {{wagokanji of|たべる}} or {{ja-see|たべる}}
+        let pattern = #"\{\{(?:wagokanji of|ja-see|ja-see-kango|ja-kana-map)\|([^\}|]+)"#
+        guard let regex = try? NSRegularExpression(pattern: pattern),
+              let match = regex.firstMatch(in: text, range: NSRange(text.startIndex..., in: text)),
+              let range = Range(match.range(at: 1), in: text)
+        else { return nil }
+        return String(text[range])
+    }
+    
+    func parseDefinitionKorean(from text: String) -> String? {
+        let lines = text.components(separatedBy: "\n")
+        var collecting = false
+        var result: [String] = []
+
+        for line in lines {
+            if line.contains("== 한국어 ==") || line.contains("==한국어==") {
+                collecting = true
+                continue
+            }
+            if collecting && line.hasPrefix("==") && !line.hasPrefix("===") { break }
+            if collecting { result.append(line) }
+        }
+
+        let definitions = extractDefinitionsKorean(from: result)
+        let formatted = formatDefinitions(definitions)
+        return formatted.isEmpty ? nil : formatted
+    }
+    
+    func parseDefinitionRussian(from text: String) -> String? {
+        let lines = text.components(separatedBy: "\n")
+        var collecting = false
+        var result: [String] = []
+
+        for line in lines {
+            // Russian Wiktionary uses = {{-ru-}} =
+            if line.contains("{{-ru-}}") {
+                collecting = true
+                continue
+            }
+            // Stop at next language section
+            if collecting && line.hasPrefix("= {{-") && !line.contains("-ru-") { break }
+            if collecting { result.append(line) }
+        }
+
+        let definitions = extractDefinitionsRussian(from: result)
+        let formatted = formatDefinitions(definitions)
+        return formatted.isEmpty ? nil : formatted
+    }
+
+    private func extractDefinitionsRussian(from lines: [String]) -> [String] {
+        var definitions: [String] = []
+        var inMeaningsSection = false
+
+        for line in lines {
+            let trimmed = line.trimmingCharacters(in: .whitespaces)
+
+            // Only collect definitions under ==== Значение ====
+            if trimmed.contains("Значение") {
+                inMeaningsSection = true
+                continue
+            }
+
+            // Stop collecting when another ==== section starts
+            if inMeaningsSection && trimmed.hasPrefix("====") {
+                break
+            }
+
+            guard inMeaningsSection,
+                  trimmed.hasPrefix("# "),
+                  !trimmed.hasPrefix("#:"),
+                  !trimmed.hasPrefix("#*"),
+                  !trimmed.hasPrefix("##")
+            else { continue }
+
+            // Detect inflected form redirect
+            let inflectionPattern = #"\{\{inflection of\|ru\|([^|}\s]+)"#
+            if let regex = try? NSRegularExpression(pattern: inflectionPattern),
+               let match = regex.firstMatch(in: trimmed, range: NSRange(trimmed.startIndex..., in: trimmed)),
+               let lemmaRange = Range(match.range(at: 1), in: trimmed) {
+                return ["[[ru-redirect:\(String(trimmed[lemmaRange]))]]"]
+            }
+
+            // Strip {{п.|ru}} labels like {{п.|ru}}, {{безл.|ru}}
+            let definition = String(trimmed.dropFirst(2))
+                .trimmingCharacters(in: .whitespaces)
+                .replacingOccurrences(of: "\\{\\{[^}]+\\}\\} ?", with: "", options: .regularExpression)
+
+            var cleaned = cleanWiktionaryMarkup(definition)
+            
+            while let closeRange = cleaned.range(of: "}}") {
+                // Search backwards from the position of "}}" to find "[["
+                let searchArea = cleaned[cleaned.startIndex..<closeRange.lowerBound]
+                
+                guard let openRange = searchArea.range(of: "[[", options: .backwards) else {
+                    break // No matching "[[" found, stop processing
+                }
+                
+                // Remove everything from "[[" to "}}" (inclusive)
+                cleaned.removeSubrange(openRange.lowerBound..<closeRange.upperBound)
+            }
+            
+            
+            if !cleaned.isEmpty && cleaned.count > 1 {
+                definitions.append(cleaned)
+            }
+
+        }
+
+        return definitions
+    }
+
+    
+    private func extractDefinitionsKorean(from lines: [String]) -> [String] {
+        var definitions: [String] = []
+
+        for line in lines {
+            let trimmed = line.trimmingCharacters(in: .whitespaces)
+
+            guard trimmed.hasPrefix("# "),
+                  !trimmed.hasPrefix("#:"),
+                  !trimmed.hasPrefix("#*"),
+                  !trimmed.hasPrefix("##")
+            else { continue }
+
+            let definition = String(trimmed.dropFirst(2))
+                .trimmingCharacters(in: .whitespaces)
+
+            let referencePattern = #"'\[\[([^\]]+)\]\]'\s*의\s*(준말|활용형|변형|본말)"#
+            if let regex = try? NSRegularExpression(pattern: referencePattern),
+               let match = regex.firstMatch(in: definition, range: NSRange(definition.startIndex..., in: definition)),
+               let wordRange = Range(match.range(at: 1), in: definition) {
+                let baseWord = String(definition[wordRange])
+                return ["[[ko-redirect:\(baseWord)]]"]
+            }
+
+            let cleaned = cleanWiktionaryMarkup(definition)
+            if !cleaned.isEmpty {
+                definitions.append(cleaned)
+            }
+        }
+
+        return definitions
+    }
+    
+
+    private func extractDefinitionsJapanese(from lines: [String]) -> [String] {
+        var definitions: [String] = []
+
+        for line in lines {
+            let trimmed = line.trimmingCharacters(in: .whitespaces)
+
+            guard trimmed.hasPrefix("# "),
+                  !trimmed.hasPrefix("#:"),
+                  !trimmed.hasPrefix("#*"),
+                  !trimmed.hasPrefix("##")
+            else { continue }
+
+            let cleaned = cleanWiktionaryMarkup(
+                trimmed.dropFirst(2).trimmingCharacters(in: .whitespaces)
+            )
+
+            if !cleaned.isEmpty {
+                definitions.append(cleaned)
+            }
+        }
+
+        return definitions
+    }
+    private func extractDefinitionsSpanish(from lines: [String]) -> [String] {
+        var definitions: [String] = []
+
+        for line in lines {
+            let trimmed = line.trimmingCharacters(in: .whitespaces)
+
+            guard trimmed.hasPrefix(";") else { continue }
+
+            guard let colonIndex = trimmed.lastIndex(of: ":") else { continue }
+
+            let afterColon = String(trimmed[trimmed.index(after: colonIndex)...])
+                .trimmingCharacters(in: .whitespaces)
+
+            guard !afterColon.isEmpty,
+                  !afterColon.contains("forma verbo"),
+                  !afterColon.contains("forma adjetivo"),
+                  !afterColon.contains("forma sustantivo")
+            else { continue }
+
+            let cleaned = cleanWiktionaryMarkup(afterColon)
+
+            if !cleaned.isEmpty && cleaned != "." {
+                definitions.append(cleaned)
+            }
+
+        }
+
+        return definitions
+    }
+    
     
     func formatDefinitions(_ definitions: [String]) -> String {
         definitions.enumerated()
@@ -238,9 +532,6 @@ extension WiktionaryClient {
                 )
                 definitions.append(cleaned)
                 
-                if definitions.count >= 2 {
-                    break
-                }
             }
         }
         
@@ -248,6 +539,30 @@ extension WiktionaryClient {
     }
 
     
+    private func extractDefinitionsFrench(from lines: [String]) -> [String] {
+        var definitions: [String] = []
+
+        for line in lines {
+            let trimmed = line.trimmingCharacters(in: .whitespaces)
+
+            guard trimmed.hasPrefix("#"),
+                  !trimmed.hasPrefix("#:"),
+                  !trimmed.hasPrefix("#*"),
+                  !trimmed.hasPrefix("##")
+            else { continue }
+
+            let cleaned = cleanWiktionaryMarkup(
+                trimmed.dropFirst(2).trimmingCharacters(in: .whitespaces)
+            )
+
+            if !cleaned.isEmpty {
+                definitions.append(cleaned)
+            }
+
+        }
+
+        return definitions
+    }
     
     func cleanWiktionaryMarkup(_ text: String) -> String {
         var result = text
@@ -273,10 +588,7 @@ extension WiktionaryClient {
         result = result.replacingOccurrences(of: "<[^>]+/>", with: "", options: .regularExpression)
         result = result.replacingOccurrences(of: "<[^>]+>", with: "", options: .regularExpression)
 
-        result = result.replacingOccurrences(
-            of: ":",
-            with: ""
-        )
+        result = result.replacingOccurrences(of: ":", with: "")
         
         return result.trimmingCharacters(in: .whitespaces)
     }

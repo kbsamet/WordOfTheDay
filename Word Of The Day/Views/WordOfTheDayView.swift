@@ -14,6 +14,8 @@ import Translation
 
 struct WordOfTheDayView: View {
     
+    @Environment(\.scenePhase) private var scenePhase
+
     @StateObject private var vm = WordOfTheDayViewModel()
     @State private var dragOffset: CGFloat = 0
     @State private var screenWidth: CGFloat = UIScreen.main.bounds.width
@@ -70,7 +72,14 @@ struct WordOfTheDayView: View {
                 )
             }
             .onAppear { vm.loadWord() }
-            .translationPresentation(isPresented: $vm.showTranslation, text: vm.currentWord)
+            .translationPresentation(isPresented: $vm.showTranslation, text: vm.translatedWord)
+            .onChange(of: scenePhase) { newPhase in
+                        if newPhase == .active {
+                            if vm.wordStack.count == 1{
+                                vm.loadWord()
+                            }
+                        }
+                    }
         }
     }
     private var topBar: some View {
@@ -201,12 +210,24 @@ struct WordOfTheDayView: View {
                         }
                     }
                     
-                    Button { vm.showTranslation = true } label: {
+                    Button {
+                        vm.showTranslation = true
+                        vm.translatedWord = vm.currentWord
+                    } label: {
                         ZStack {
                             Circle().fill(.white.opacity(0.07)).frame(width: 48, height: 48)
                             Image(systemName: "translate")
                                 .font(.system(size: 12, weight: .regular))
                                 .foregroundStyle(.white.opacity(0.45))
+                        }
+                    }
+                    Button { vm.pronounce() } label: {
+                        ZStack {
+                            Circle().fill(.white.opacity(0.07)).frame(width: 48, height: 48)
+                            Image(systemName: vm.pronunciationPlayer.isLoading ? "progress.indicator" : "speaker.wave.2")
+                                .font(.system(size: 12, weight: .regular))
+                                .foregroundStyle(.white.opacity(0.45))
+                                .symbolEffect(.variableColor, isActive: vm.pronunciationPlayer.isLoading)
                         }
                     }
                 }
@@ -259,48 +280,62 @@ struct WordOfTheDayView: View {
                 
                 Spacer().frame(height: 20)
                 ScrollView{
-                    if vm.definitions.isEmpty {
-                        HStack {
-                            
-                            DefinitionSegmentView(
-                                line: "No definitions found",
-                                onLinkTap: { linkedWord in vm.pushWord(linkedWord) },
-                                prefetchedWords: vm.prefetchedWords
-                            )
-                            Spacer()
-                        }
-                        .padding(.top, 1)
-                    }else{
-                        ForEach(Array(vm.definitions.enumerated()), id: \.offset) { index, line in
-                            if index > 0 {
-                                Divider().overlay(.white.opacity(0.07)).padding(.vertical, 12)
-                            }
-                            HStack(alignment: .top, spacing: 12) {
-                                ZStack {
-                                    Circle().fill(.white.opacity(0.08)).frame(width: 20, height: 20)
-                                    Text("\(index + 1)")
-                                        .font(.system(size: 9, weight: .regular).monospaced())
-                                        .foregroundStyle(.white.opacity(0.6))
-                                }
-                                .padding(.top, 1)
+                    VStack{
+                        if vm.definitions.isEmpty {
+                            HStack {
                                 
                                 DefinitionSegmentView(
-                                    line: line,
+                                    line: "No definitions found",
                                     onLinkTap: { linkedWord in vm.pushWord(linkedWord) },
                                     prefetchedWords: vm.prefetchedWords
                                 )
-                                
                                 Spacer()
                             }
+                            .padding(.top, 1)
+                        }else{
+                            ForEach(Array(vm.definitions.enumerated()), id: \.offset) { index, line in
+                                if index > 0 {
+                                    Divider().overlay(.white.opacity(0.07)).padding(.vertical, 12)
+                                }
+                                HStack(alignment: .top, spacing: 12) {
+                                    ZStack {
+                                        Circle().fill(.white.opacity(0.08)).frame(width: 20, height: 20)
+                                        Text("\(index + 1)")
+                                            .font(.system(size: 9, weight: .regular).monospaced())
+                                            .foregroundStyle(.white.opacity(0.6))
+                                    }
+                                    .padding(.top, 1)
+                                    
+                                    DefinitionSegmentView(
+                                        line: line,
+                                        onLinkTap: { linkedWord in vm.pushWord(linkedWord) },
+                                        prefetchedWords: vm.prefetchedWords
+                                    )
+                                    
+                                    Spacer()
+                                    Button {
+                                        vm.showTranslation = true
+                                        vm.translatedWord = DefinitionWithLinks(from: line).plainText
+                                    } label: {
+                                        ZStack {
+                                            Circle().fill(.white.opacity(0.07)).frame(width: 32, height: 32)
+                                            Image(systemName: "translate")
+                                                .font(.system(size: 12, weight: .regular))
+                                                .foregroundStyle(.white.opacity(0.45))
+                                        }
+                                    }
+                                    Spacer().frame(width: 5)
+                                }
+                            }
                         }
+                        
                     }
-                   
                     
                     Spacer().frame(height: 20)
                 }.scrollIndicators(.hidden)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .frame(maxWidth: 350)
+                    .frame(maxHeight: 300)
             }
+            .fixedSize(horizontal: false, vertical: true)
             .padding(20)
             .background(.white.opacity(0.045))
             .clipShape(RoundedRectangle(cornerRadius: 18))

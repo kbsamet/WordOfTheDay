@@ -105,10 +105,6 @@ struct LevelSelectionView: View {
                                             )
                                         )
 
-                                    Circle()
-                                        .stroke(.white.opacity(0.05), lineWidth: 0.5)
-                                        .frame(width: 100, height: 100)
-                                        .offset(x: 80, y: -30)
                                 }
                             )
                             .clipShape(RoundedRectangle(cornerRadius: 18))

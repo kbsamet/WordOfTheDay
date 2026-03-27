@@ -7,6 +7,8 @@
 
 import SwiftUI
 import WidgetKit
+import Combine
+
 
 @MainActor
 class WordOfTheDayViewModel: ObservableObject {
@@ -16,6 +18,7 @@ class WordOfTheDayViewModel: ObservableObject {
     @Published var isLoading: Bool = true
     @Published var showCopyConfirmation: Bool = false
     @Published var showTranslation: Bool = false
+    @Published var translatedWord: String = ""
     @Published var wordStack: [String] = []
 
     // Prefetch cache: word -> definition (nil = no definition found)
@@ -24,7 +27,17 @@ class WordOfTheDayViewModel: ObservableObject {
     @Published private(set) var currentWordlevel : LanguageLevel?
     private(set) var selectedLanguage: WiktionaryLanguage = .english
     private(set) var selectedLevel: LanguageLevel = .beginner
-
+    let pronunciationPlayer = PronunciationPlayer()
+    private var cancellables: Set<AnyCancellable> = []
+    
+    init() {
+        pronunciationPlayer.$isLoading.receive(on:DispatchQueue.main).sink{
+            _ in
+            self.objectWillChange.send()
+        }
+        .store(in: &cancellables)
+    }
+    
     var definitions: [String] {
         currentDefinition
             .components(separatedBy: "\n")
@@ -66,6 +79,12 @@ class WordOfTheDayViewModel: ObservableObject {
                 level: selectedLevel.rawValue
             )
             _ = await (prefetch, weekly)
+        }
+    }
+
+    func pronounce() {
+        Task {
+            await pronunciationPlayer.play(word: currentWord, language: selectedLanguage)
         }
     }
     
@@ -130,6 +149,7 @@ class WordOfTheDayViewModel: ObservableObject {
     }
 
     private func prefetchLinks(in definition: String) async {
+        print("current prefetched words : \(prefetchedWords)")
         let links = extractLinks(from: definition)
         guard !links.isEmpty else { return }
 
@@ -152,13 +172,13 @@ class WordOfTheDayViewModel: ObservableObject {
                 }
             }
 
+            var updates: [String: String] = [:]
+
             for await (word, definition) in group {
-                if let definition {
-                    prefetchedWords[word] = definition
-                } else {
-                    prefetchedWords[word] = nil
-                }
+                updates[word] = definition ?? ""
             }
+            prefetchedWords.merge(updates) { _, new in new }
+            print("current prefetched words : \(prefetchedWords)")
         }
 
         isPrefetching = false
@@ -176,9 +196,10 @@ class WordOfTheDayViewModel: ObservableObject {
             guard let match,
                   let wordRange = Range(match.range(at: 1), in: text)
             else { return }
-            words.append(String(text[wordRange]).lowercased())
+            words.append(String(text[wordRange]))
         }
 
         return words
     }
+    
 }

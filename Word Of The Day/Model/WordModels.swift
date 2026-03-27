@@ -83,17 +83,25 @@ enum WiktionaryLanguage: String,CaseIterable,Identifiable {
     case turkish = "tr"
     case german = "de"
     case french = "fr"
-
+    case spanish = "es"
+    case japanese = "ja"
+    case korean = "ko"
+    case russian = "ru"
+    
     var domain: String {
         "\(rawValue).wiktionary.org"
     }
-
-    var sectionHeader: String {
+    
+    var localeCode: String {
         switch self {
-        case .english: return "English"
-        case .turkish: return "Türkçe"
-        case .german: return "Deutsch"
-        case .french: return "Français"
+            case .english:  return "en-US"
+            case .german:   return "de-DE"
+            case .turkish:  return "tr-TR"
+            case .french:   return "fr-FR"
+            case .spanish:  return "es-ES"
+            case .japanese: return "ja-JP"
+            case .korean:   return "ko-KR"
+            case .russian:  return "ru-RU"
         }
     }
     
@@ -107,6 +115,14 @@ enum WiktionaryLanguage: String,CaseIterable,Identifiable {
             return "German"
         case .turkish:
             return "Turkish"
+        case .spanish:
+            return "Spanish"
+        case .japanese:
+            return "Japanese"
+        case .korean:
+            return "Korean"
+        case .russian:
+            return "Russian"
         }
     }
     
@@ -115,7 +131,11 @@ enum WiktionaryLanguage: String,CaseIterable,Identifiable {
         case .english: return "flag_uk"
         case .german:  return "flag_de"
         case .french:  return "flag_fr"
-        case .turkish:  return "flag_tr"
+        case .turkish: return "flag_tr"
+        case .spanish: return "flag_es"
+        case .japanese:return "flag_ja"
+        case .korean:  return "flag_kr"
+        case .russian: return "flag_ru"
         }
     }
 }

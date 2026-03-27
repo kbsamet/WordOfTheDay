@@ -17,7 +17,7 @@ struct DefinitionSegmentView: View {
     }
     
     private func isValidLink(_ word: String) -> Bool {
-        guard let entry = prefetchedWords[word] else { return true } // optimistic while absent
+        guard let entry = prefetchedWords[word] else { return false }
         return entry != nil && entry?.trimmingCharacters(in: .whitespacesAndNewlines) != ""
     }
     

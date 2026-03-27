@@ -38,8 +38,16 @@ class FrequencyListParser {
             return parseGerman(text)
         case .turkish:
             return parseTurkish(text)
-        default:
-            return []
+        case .french:
+            return parseFrench(text)
+        case .spanish:
+            return parseFrench(text)
+        case .japanese:
+            return parseJapanese(text)
+        case .korean:
+            return parseKorean(text)
+        case .russian:
+            return parseRussian(text)
         }
     }
     
@@ -145,4 +153,86 @@ class FrequencyListParser {
                 )
             }
     }
+    
+    private static func parseFrench(_ text: String) -> [FrequencyWord] {
+        return text
+            .split(whereSeparator: \.isNewline)
+            .enumerated()
+            .compactMap { index, line -> FrequencyWord? in
+                let parts = line.split(separator: " ")
+                guard parts.count >= 2 else { return nil }
+
+                let word = String(parts[0])
+                let frequency = Int(parts[1]) ?? 0
+                let pattern = #"^[a-zA-ZàâäéèêëîïôùûüÿçœæÀÂÄÉÈÊËÎÏÔÙÛÜŸÇŒÆ]+$"#
+                
+                guard word.range(of: pattern, options: .regularExpression) != nil else { return nil }
+
+                return FrequencyWord(rank: index + 1, word: word, pos: .noun)
+            }
+    }
+    private static func parseJapanese(_ text: String) -> [FrequencyWord] {
+        return text
+            .split(whereSeparator: \.isNewline)
+            .enumerated()
+            .compactMap { index, line -> FrequencyWord? in
+                let parts = line.split(separator: " ")
+                guard parts.count >= 2 else { return nil }
+
+                let word = String(parts[0])
+                
+                let pattern = #"^[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FFF\u3400-\u4DBF]+$"#
+                guard word.range(of: pattern, options: .regularExpression) != nil else { return nil }
+                
+                return FrequencyWord(rank: index + 1, word: word, pos: .noun)
+            }
+    }
+    private static func parseKorean(_ text: String) -> [FrequencyWord] {
+        return text
+            .split(whereSeparator: \.isNewline)
+            .compactMap { line -> FrequencyWord? in
+                let trimmed = String(line).trimmingCharacters(in: .whitespaces)
+                guard !trimmed.isEmpty else { return nil }
+
+                // Format: "1. 것 - create한 - A"
+                let parts = trimmed.components(separatedBy: " - ")
+                guard parts.count >= 3 else { return nil }
+
+                // Extract rank from "1. 것"
+                let rankWord = parts[0].trimmingCharacters(in: .whitespaces)
+                let rankWordParts = rankWord.components(separatedBy: ". ")
+                guard rankWordParts.count >= 2,
+                      let rank = Int(rankWordParts[0])
+                else { return nil }
+
+                let word = rankWordParts[1].trimmingCharacters(in: .whitespaces)
+                let grade = parts[2].trimmingCharacters(in: .whitespaces)
+
+                // Map grade to rank range for levelForRank
+                let adjustedRank: Int
+                switch grade {
+                case "A": adjustedRank = rank
+                case "B": adjustedRank = 3000 + rank
+                case "C": adjustedRank = 7000 + rank
+                default:  adjustedRank = rank
+                }
+
+                return FrequencyWord(rank: adjustedRank, word: word, pos: .noun)
+            }
+    }
+    private static func parseRussian(_ text: String) -> [FrequencyWord] {
+        return text
+            .split(whereSeparator: \.isNewline)
+            .enumerated()
+            .compactMap { index, line -> FrequencyWord? in
+                let parts = line.split(separator: " ")
+                guard parts.count >= 2 else { return nil }
+                let word = String(parts[0]) 
+                let pattern = #"^[\u0400-\u04FF]+$"#
+                
+                guard word.range(of: pattern, options: .regularExpression) != nil && word.count > 1 else { return nil }
+                return FrequencyWord(rank: index + 1, word: word, pos: .noun)
+            }
+    }
+
 }
